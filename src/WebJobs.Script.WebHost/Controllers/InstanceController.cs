@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -29,25 +30,32 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Controllers
 
         [HttpPost]
         [Route("admin/instance/assign")]
-        [Authorize(Policy = PolicyNames.AdminAuthLevel)]
-        public async Task<IActionResult> Assign([FromBody] EncryptedHostAssignmentContext encryptedAssignmentContext)
+        //[Authorize(Policy = PolicyNames.AdminAuthLevel)]
+        public async Task<IActionResult> Assign([FromBody] HostAssignmentContext encryptedAssignmentContext)
         {
-            var containerKey = _environment.GetEnvironmentVariable(EnvironmentSettingNames.ContainerEncryptionKey);
-            var assignmentContext = encryptedAssignmentContext.Decrypt(containerKey);
-
-            // before starting the assignment we want to perform as much
-            // up front validation on the context as possible
-            string error = await _instanceManager.ValidateContext(assignmentContext);
-            if (error != null)
+            try
             {
-                return StatusCode(StatusCodes.Status400BadRequest, error);
+                //var containerKey = _environment.GetEnvironmentVariable(EnvironmentSettingNames.ContainerEncryptionKey);
+                var assignmentContext = encryptedAssignmentContext; //encryptedAssignmentContext.Decrypt(containerKey);
+
+                // before starting the assignment we want to perform as much
+                // up front validation on the context as possible
+                string error = await _instanceManager.ValidateContext(assignmentContext);
+                if (error != null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, error);
+                }
+
+                var result = _instanceManager.StartAssignment(assignmentContext);
+
+                return result
+                    ? Accepted()
+                    : StatusCode(StatusCodes.Status409Conflict, "Instance already assigned");
             }
-
-            var result = _instanceManager.StartAssignment(assignmentContext);
-
-            return result
-                ? Accepted()
-                : StatusCode(StatusCodes.Status409Conflict, "Instance already assigned");
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.ToString());
+            }
         }
 
         [HttpGet]

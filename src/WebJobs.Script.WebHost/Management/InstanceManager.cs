@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -136,14 +137,37 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Management
             if (!string.IsNullOrEmpty(zipPath))
             {
                 // download zip and extract
-                var zipUri = new Uri(zipPath);
-                var filePath = Path.GetTempFileName();
-                await DownloadAsync(zipUri, filePath);
+                // var zipUri = new Uri(zipPath);
+                var filePath = zipPath;
+                // await DownloadAsync(zipUri, filePath);
+                await Task.Delay(1);
 
                 _logger.LogInformation($"Extracting files to '{options.ScriptPath}'");
-                ZipFile.ExtractToDirectory(filePath, options.ScriptPath, overwriteFiles: true);
+                // ZipFile.ExtractToDirectory(filePath, options.ScriptPath, overwriteFiles: true);
+                Console.WriteLine(Bash(string.Format(assignmentContext.Command, filePath, "/home/site/wwwroot")));
                 _logger.LogInformation($"Zip extraction complete");
             }
+        }
+
+        private static string Bash(string cmd)
+        {
+            var escapedArgs = cmd.Replace("\"", "\\\"");
+
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"{escapedArgs}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+            process.Start();
+            string result = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            return result;
         }
 
         private async Task DownloadAsync(Uri zipUri, string filePath)

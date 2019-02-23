@@ -12,6 +12,9 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Models
         [JsonProperty("siteId")]
         public int SiteId { get; set; }
 
+        [JsonProperty("command")]
+        public string Command { get; set; }
+
         [JsonProperty("siteName")]
         public string SiteName { get; set; }
 

@@ -31,7 +31,7 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Controllers
         [HttpPost]
         [Route("admin/instance/assign")]
         //[Authorize(Policy = PolicyNames.AdminAuthLevel)]
-        public async Task<IActionResult> Assign([FromBody] HostAssignmentContext encryptedAssignmentContext)
+        public IActionResult Assign([FromBody] HostAssignmentContext encryptedAssignmentContext)
         {
             try
             {
@@ -40,11 +40,11 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost.Controllers
 
                 // before starting the assignment we want to perform as much
                 // up front validation on the context as possible
-                string error = await _instanceManager.ValidateContext(assignmentContext);
-                if (error != null)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, error);
-                }
+                // string error = await _instanceManager.ValidateContext(assignmentContext);
+                // if (error != null)
+                // {
+                //     return StatusCode(StatusCodes.Status400BadRequest, error);
+                // }
 
                 var result = _instanceManager.StartAssignment(assignmentContext);
 

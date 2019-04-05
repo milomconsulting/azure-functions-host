@@ -46,6 +46,13 @@ mkdir %MSGDIR%
 
 set OUTDIR=%MSGDIR%\DotNet
 mkdir %OUTDIR%
+
+@rem generate shared types
+for %%F in (%PROTO_PATH%\shared\*) do %GRPC_TOOLS_PATH%\protoc.exe %%F --csharp_out %OUTDIR% --grpc_out=%OUTDIR% --plugin=protoc-gen-grpc=%GRPC_TOOLS_PATH%\grpc_csharp_plugin.exe --proto_path=%PROTO_PATH% --proto_path=%PROTOBUF_TOOLS%
+
+@rem generate other types
+for /D %%D in (%PROTO_PATH%\*) do for %%F in (%%D\*.proto) do %GRPC_TOOLS_PATH%\protoc.exe %%F --csharp_out %OUTDIR% --grpc_out=%OUTDIR% --plugin=protoc-gen-grpc=%GRPC_TOOLS_PATH%\grpc_csharp_plugin.exe --proto_path=%PROTO_PATH% --proto_path=%%D --proto_path=%PROTOBUF_TOOLS%
+
 %GRPC_TOOLS_PATH%\protoc.exe %PROTO% --csharp_out %OUTDIR% --grpc_out=%OUTDIR% --plugin=protoc-gen-grpc=%GRPC_TOOLS_PATH%\grpc_csharp_plugin.exe --proto_path=%PROTO_PATH% --proto_path=%PROTOBUF_TOOLS% 
 
 @rem add pragma warning disable labels to generated files

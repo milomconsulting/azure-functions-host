@@ -65,6 +65,17 @@ mkdir $MSGDIR
 
 OUTDIR=$MSGDIR/DotNet
 mkdir $OUTDIR
+
+#generate shared types
+for f in $PROTO_PATH/shared/*.proto; do
+	$GRPC_TOOLS_PATH/protoc $f --csharp_out $OUTDIR --grpc_out=$OUTDIR --plugin=protoc-gen-grpc=$GRPC_TOOLS_PATH/grpc_csharp_plugin --proto_path=$PROTO_PATH --proto_path=$PROTOBUF_TOOLS
+done
+
+#generate other types
+for f in $PROTO_PATH/*/*.proto; do
+	$GRPC_TOOLS_PATH/protoc $f --csharp_out $OUTDIR --grpc_out=$OUTDIR --plugin=protoc-gen-grpc=$GRPC_TOOLS_PATH/grpc_csharp_plugin --proto_path=$PROTO_PATH --proto_path=$PROTOBUF_TOOLS
+done
+
 $GRPC_TOOLS_PATH/protoc $PROTO --csharp_out $OUTDIR --grpc_out=$OUTDIR --plugin=protoc-gen-grpc=$GRPC_TOOLS_PATH/grpc_csharp_plugin --proto_path=$PROTO_PATH --proto_path=$PROTOBUF_TOOLS
 
 # add #pragma warning disable labels
